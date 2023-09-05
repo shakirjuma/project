@@ -4,17 +4,15 @@
     include('../includes/check-login.php');
     check_login();
 
-    if(isset($_POST['update'])){
-        $email=$_POST['emailid'];
-        $aid=$_SESSION['id'];
-        $udate=date('Y-m-d');
-        $query="UPDATE admin set email=?,updation_date=? where id=?";
-        $stmt = $mysqli->prepare($query);
-        $rc=$stmt->bind_param('ssi',$email,$udate,$aid);
-        $stmt->execute();
-        echo"<script>alert('Email id has been successfully updated');</script>";
+    if(isset($_GET['del'])) {
+        $id=intval($_GET['del']);
+        $adn="DELETE from registration where id=?";
+            $stmt= $mysqli->prepare($adn);
+            $stmt->bind_param('i',$id);
+            $stmt->execute();
+            $stmt->close();	   
+            echo "<script>alert('Record has been deleted');</script>" ;
     }
-
 ?>
 
 <!DOCTYPE html>
@@ -37,6 +35,16 @@
      <link href="../assets/extra-libs/datatables.net-bs4/css/dataTables.bootstrap4.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="../dist/css/style.min.css" rel="stylesheet">
+
+    <script language="javascript" type="text/javascript">
+    var popUpWin=0;
+    function popUpWindow(URLStr, left, top, width, height){
+        if(popUpWin) {
+         if(!popUpWin.closed) popUpWin.close();
+            }
+            popUpWin = open(URLStr,'popUpWin', 'toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=no,copyhistory=yes,width='+510+',height='+430+',left='+left+', top='+top+',screenX='+left+',screenY='+top+'');
+        }
+    </script>
 
 </head>
 
@@ -87,14 +95,15 @@
             <div class="page-breadcrumb">
                 <div class="row">
                     <div class="col-7 align-self-center">
-                    <h4 class="page-title text-truncate text-dark font-weight-medium mb-1">My Profile</h4>
+                    <h4 class="page-title text-truncate text-dark font-weight-medium mb-1">Hostel Student Management</h4>
                         <div class="d-flex align-items-center">
-                            <h6 class="card-subtitle"><code>You cannot make changes in username and registered date!</code> </h6> 
+                            <!-- <nav aria-label="breadcrumb">
+                                
+                            </nav> -->
                         </div>
                     </div>
                     
                 </div>
-
             </div>
             <!-- ============================================================== -->
             <!-- End Bread crumb and right sidebar toggle -->
@@ -104,79 +113,63 @@
             <!-- ============================================================== -->
             <div class="container-fluid">
 
-                <form method="POST">
-
-                    <div class="row">
-
-
-                    <?php	
-                    $aid=$_SESSION['id'];
-                        $ret="SELECT * from admin where id=?";
-                            $stmt= $mysqli->prepare($ret) ;
-                        $stmt->bind_param('i',$aid);
-                        $stmt->execute() ;//ok
-                        $res=$stmt->get_result();
-                        //$cnt=1;
-                        while($row=$res->fetch_object())
-                        {
-                            ?>
-
-
-                        <div class="col-sm-12 col-md-6 col-lg-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h4 class="card-title">Username</h4>
-                                        <div class="form-group">
-                                            <input type="text" value="<?php echo $row->username;?>" disabled class="form-control">
-                                        </div>
-                                    
+                <!-- Table Starts -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-subtitle">Displaying all the registered students list.</h6>
+                                <div class="table-responsive">
+                                    <table id="zero_config" class="table table-striped table-hover table-bordered no-wrap">
+                                    <thead class="thead-dark">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Reg. No.</th>
+                                                <th>Student's Name</th>
+                                                <th>Room No.</th>
+                                                <th>Seater</th>
+                                                <th>Staying From</th>
+                                                <th>Contact</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        <?php	
+                                        $aid=$_SESSION['id'];
+                                        $ret="SELECT * from registration";
+                                        $stmt= $mysqli->prepare($ret) ;
+                                        $stmt->execute() ;//ok
+                                        $res=$stmt->get_result();
+                                        $cnt=1;
+                                        while($row=$res->fetch_object())
+                                            {
+                                                ?>
+                                        <tr><td><?php echo $cnt;;?></td>
+                                        <td><?php echo $row->regno;?></td>
+                                        <td><?php echo $row->firstName;?> <?php echo $row->middleName;?> <?php echo $row->lastName;?></td>
+                                        <td><?php echo $row->roomno;?></td>
+                                        <td><?php echo $row->seater;?></td>
+                                        <td><?php echo $row->stayfrom;?></td>
+                                        <td><?php echo $row->contactno;?></td>
+                                        <td>
+                                        <a href="students-profile.php?id=<?php echo $row->id;?>" title="View Full Details"><i class="icon-size-fullscreen"></i></a>&nbsp;&nbsp;
+                                        <a href="manage-students.php?del=<?php echo $row->id;?>" title="Delete Record" onclick="return confirm("Do you want to delete");"><i class="icon-close" style="color:red;"></i></a></td>
+                                        </tr>
+                                            <?php
+                                        $cnt=$cnt+1;
+                                            } ?>
+											
+										
+									</tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-
-
-
-                        <div class="col-sm-12 col-md-6 col-lg-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h4 class="card-title">Email ID</h4>
-                                        <div class="form-group">
-                                            <input type="email" class="form-control" name="emailid" id="emailid" value="<?php echo $row->email;?>" required="required">
-                                        </div>
-                                    
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div class="col-sm-12 col-md-6 col-lg-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h4 class="card-title">Registered Account On</h4>
-                                        <div class="form-group">
-                                            <input type="text" class="form-control" value="<?php echo $row->reg_date;?>" disabled>
-                                        </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h6 class="card-subtitle"><code>Last Updated On: </code> <?php echo $row->updation_date;?> </h6>
-
-                        <?php } ?>
-
                     </div>
+                </div>
+                
+                <!-- Table Ends -->
 
-
-                        <div class="form-actions">
-                            <div class="text-center">
-                                <button type="submit" name="update" class="btn btn-success">Make Changes</button>
-                                <button type="reset" class="btn btn-danger">Reset</button>
-                            </div>
-                        </div>
-
-                 
-                 </form>
-                 
             </div>
             <!-- ============================================================== -->
             <!-- End Container fluid  -->
